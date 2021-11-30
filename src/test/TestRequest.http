@@ -1,0 +1,236 @@
+# For a quick start check out our HTTP Requests collection (Tools|HTTP Client|Open HTTP Requests Collection).
+#
+# Following HTTP Request Live Templates are available:
+# * 'gtrp' and 'gtr' create a GET request with or without query parameters;
+# * 'ptr' and 'ptrp' create a POST request with a simple or parameter-like body;
+# * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
+
+GET http://localhost:8080/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiaGFuZGxldnJyZXNvdXJjZWlkIl0sInVzZXJfbmFtZSI6IkF1c2JpbGR1bmdzbWVpc3RlciIsInNjb3BlIjpbInJlYWQiLCJ3cml0ZSJdLCJleHAiOjE2Mjk5ODkwMDMsInVzZXIiOnsiaWQiOjEsInVzZXJOYW1lIjoiQXVzYmlsZHVuZ3NtZWlzdGVyIiwiZnVsbE5hbWUiOiJBdXNiaWxkdW5nc21laXN0ZXIiLCJyb2xlIjoiVGVhY2hlciJ9LCJhdXRob3JpdGllcyI6WyJUZWFjaGVyIl0sImp0aSI6ImQ0MTkyOGEzLTFhNGUtNDBlZi05NWQ3LTYyYjBlYWM2ODIxOSIsImNsaWVudF9pZCI6ImhhbmRsZXZyY2xpZW50In0.tqf6aCYWvWvG-ppn2NY0UhZLYDtBFLlkyGDfew82yco
+
+###
+
+GET http://localhost:8080/user/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiaGFuZGxldnJyZXNvdXJjZWlkIl0sInVzZXJfbmFtZSI6IlRlc3RBZG1pbiIsInNjb3BlIjpbInJlYWQiLCJ3cml0ZSJdLCJleHAiOjE2MjczMjM4ODYsInVzZXIiOnsiaWQiOjIsInVzZXJOYW1lIjoiVGVzdEFkbWluIiwiZnVsbE5hbWUiOiJUZXN0QWRtaW4iLCJyb2xlIjoiVGVhY2hlciIsInRhc2tDb2xsZWN0aW9ucyI6W10sInRhc2tzIjpbXSwidHJhaW5pbmdTZXNzaW9ucyI6W3sic3RhcnRUaW1lIjoxNjI3MjgwMzAzNjk1LCJlbmRUaW1lIjpudWxsfSx7InN0YXJ0VGltZSI6MTYyNzI4MDQ2MDcyNCwiZW5kVGltZSI6bnVsbH0seyJzdGFydFRpbWUiOjE2MjcyODA2MTc4ODAsImVuZFRpbWUiOm51bGx9LHsic3RhcnRUaW1lIjoxNjI3MjgwNjg2ODk3LCJlbmRUaW1lIjpudWxsfV19LCJhdXRob3JpdGllcyI6WyJUZWFjaGVyIl0sImp0aSI6ImQ5ODBlYTQzLWI4NGEtNGYxYy05NjM1LWRmNmEzZWY5OWQyZSIsImNsaWVudF9pZCI6ImhhbmRsZXZyY2xpZW50In0.q7EAWml1ic1MruqOtRiTbGyI52Ejw_Fs8nVW3uuvjic
+
+###
+
+PUT http://localhost:8080/user
+Content-Type:application/json
+
+{"userName": "User", "password": "Password"}
+
+###
+
+GET http://localhost:8080/choiceInteraction/
+
+###
+
+GET http://localhost:8080/user/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiaGFuZGxldnJyZXNvdXJjZWlkIl0sInVzZXJfbmFtZSI6IlRlc3RBZG1pbiIsInNjb3BlIjpbInJlYWQiLCJ3cml0ZSJdLCJleHAiOjE2MjczMjM2NjAsInVzZXIiOnsiaWQiOjIsInVzZXJOYW1lIjoiVGVzdEFkbWluIiwiZnVsbE5hbWUiOiJUZXN0QWRtaW4iLCJyb2xlIjoiVGVhY2hlciIsInRhc2tDb2xsZWN0aW9ucyI6W10sInRhc2tzIjpbXSwidHJhaW5pbmdTZXNzaW9ucyI6W3sic3RhcnRUaW1lIjoxNjI3MjgwMzAzNjk1LCJlbmRUaW1lIjpudWxsfSx7InN0YXJ0VGltZSI6MTYyNzI4MDQ2MDcyNCwiZW5kVGltZSI6bnVsbH1dfSwiYXV0aG9yaXRpZXMiOlsiVGVhY2hlciJdLCJqdGkiOiI0NzdkNzdlMC1iZDcxLTRlZjUtODRiMC1kZWQxNDk3ZGY5OTMiLCJjbGllbnRfaWQiOiJoYW5kbGV2cmNsaWVudCJ9.l-S7u_juiIdNnFB7G7uCvLXMIkKScjIHVPkQ-Pw3PzQ
+
+###
+
+GET handlevrclient:XY7kmzoNzl100@localhost:8080/oauth/token?grant_type=password&username=Ausbildungsmeister&password=passwort
+
+###
+# refresh token
+GET handlevrclient:XY7kmzoNzl100@localhost:8080/oauth/token?grant_type=refresh_token&refresh_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiaGFuZGxldnJyZXNvdXJjZWlkIl0sInVzZXJfbmFtZSI6IkF1c2JpbGR1bmdzbWVpc3RlciIsInNjb3BlIjpbInJlYWQiLCJ3cml0ZSJdLCJhdGkiOiJkNTdmYmI5OS0zYzRjLTQ1YWItYmE4NS1hZWZiNzMwZWFmNWEiLCJleHAiOjE2MzI1ODA4ODcsInVzZXIiOnsiaWQiOjEsInVzZXJOYW1lIjoiQXVzYmlsZHVuZ3NtZWlzdGVyIiwiZnVsbE5hbWUiOiJBdXNiaWxkdW5nc21laXN0ZXIiLCJyb2xlIjoiVGVhY2hlciJ9LCJhdXRob3JpdGllcyI6WyJUZWFjaGVyIl0sImp0aSI6IjA2ODM3MTU4LWEyMDYtNGViYS1hNzU4LTU1ZDM3ZDYwM2UyMiIsImNsaWVudF9pZCI6ImhhbmRsZXZyY2xpZW50In0.xigA964gBSf0oLcCYgNHgodwYSAKCv0vs6ZBRBO1kVg
+
+###
+
+GET http://localhost:8080/user/1/export
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiaGFuZGxldnJyZXNvdXJjZWlkIl0sInVzZXJfbmFtZSI6IlRlc3RBZG1pbiIsInNjb3BlIjpbInJlYWQiLCJ3cml0ZSJdLCJleHAiOjE1NzE4Njg4MzYsInVzZXIiOnsiaWQiOjIsIm5hbWUiOiJUZXN0QWRtaW4iLCJyb2xlcyI6W3siaWQiOjEsInJvbGVOYW1lIjoiU1RBTkRBUkRfVVNFUiIsImRlc2NyaXB0aW9uIjoiU3RhbmRhcmQgVXNlciAtIEhhcyBubyBhZG1pbiByaWdodHMifSx7ImlkIjoyLCJyb2xlTmFtZSI6IkFETUlOX1VTRVIiLCJkZXNjcmlwdGlvbiI6IkFkbWluIFVzZXIgLSBIYXMgcGVybWlzc2lvbiB0byBwZXJmb3JtIGFkbWluIHRhc2tzIn1dLCJ0cmFpbmluZ1Nlc3Npb25zIjpbeyJzdGFydFRpbWUiOjE1NzE4MjU2MzY1MjcsImVuZFRpbWUiOm51bGx9XSwidGFza3MiOlt7ImlkIjozLCJkZXNjcmlwdGlvbiI6IlN0ZXQgY2xpdGEga2FzZCBndWJlcmdyZW4sIG5vIHNlYSB0YWtpbWF0YSBzYW5jdHVzIGVzdCBMb3JlbSBpcHN1bSBkb2xvciBzaXQgYW1ldC4ifV19LCJhdXRob3JpdGllcyI6WyJTVEFOREFSRF9VU0VSIiwiQURNSU5fVVNFUiJdLCJqdGkiOiJkMzk3ZWYyOS0yMzgwLTQxZDgtOGMzNi01YzgxN2U3OTk4OWIiLCJjbGllbnRfaWQiOiJoYW5kbGV2cmNsaWVudCJ9.nBmi6ZF_r1MiQVF3_jdY1ErDZriOJtS_IenqabwwGVE
+
+###
+
+PUT http://localhost:8080/user/1/logout
+
+###
+
+GET http://localhost:8080/task?userId=2
+
+###
+
+GET http://localhost:8080/taskAssignment
+
+###
+
+GET http://localhost:8080/tasks
+
+###
+
+GET http://localhost:8080/media
+
+###
+
+GET http://localhost:8080/users
+
+###
+
+DELETE http://localhost:8080/user/4
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiaGFuZGxldnJyZXNvdXJjZWlkIl0sInVzZXJfbmFtZSI6IlRlc3RBZG1pbiIsInNjb3BlIjpbInJlYWQiLCJ3cml0ZSJdLCJleHAiOjE2Mjc3NTg2NTMsInVzZXIiOnsiaWQiOjIsInVzZXJOYW1lIjoiVGVzdEFkbWluIiwiZnVsbE5hbWUiOiJUZXN0QWRtaW4iLCJyb2xlIjoiVGVhY2hlciIsInRhc2tBc3NpZ25tZW50cyI6W3siaWQiOjIsImRlYWRMaW5lIjoxNTYzODMyODAwMDAwLCJ0YXNrSWQiOjIsInRhc2tDb2xsZWN0aW9uSWQiOjJ9XX0sImF1dGhvcml0aWVzIjpbIlRlYWNoZXIiXSwianRpIjoiNmE0ZGIzMmMtYTU4Ny00MDNkLWJjZGQtOTg0NzQ0YWY4OGJiIiwiY2xpZW50X2lkIjoiaGFuZGxldnJjbGllbnQifQ.MDAG10HRlNNaJv_53Bv2LC8_37-xOV2DflV6YCpVTLY
+
+###
+
+PUT http://localhost:8080/user
+Content-Type:application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiaGFuZGxldnJyZXNvdXJjZWlkIl0sInVzZXJfbmFtZSI6IlRlc3RBZG1pbiIsInNjb3BlIjpbInJlYWQiLCJ3cml0ZSJdLCJleHAiOjE2Mjc3NTg2NTMsInVzZXIiOnsiaWQiOjIsInVzZXJOYW1lIjoiVGVzdEFkbWluIiwiZnVsbE5hbWUiOiJUZXN0QWRtaW4iLCJyb2xlIjoiVGVhY2hlciIsInRhc2tBc3NpZ25tZW50cyI6W3siaWQiOjIsImRlYWRMaW5lIjoxNTYzODMyODAwMDAwLCJ0YXNrSWQiOjIsInRhc2tDb2xsZWN0aW9uSWQiOjJ9XX0sImF1dGhvcml0aWVzIjpbIlRlYWNoZXIiXSwianRpIjoiNmE0ZGIzMmMtYTU4Ny00MDNkLWJjZGQtOTg0NzQ0YWY4OGJiIiwiY2xpZW50X2lkIjoiaGFuZGxldnJjbGllbnQifQ.MDAG10HRlNNaJv_53Bv2LC8_37-xOV2DflV6YCpVTLY
+
+{
+  "id": 3,
+  "userName": "TestUser",
+  "fullName": "TestUser Updated",
+  "password": "TestPassword",
+  "role": "Learner",
+  "taskAssignmentIds": [1]
+}
+
+###
+
+POST http://localhost:8080/user
+Content-Type:application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiaGFuZGxldnJyZXNvdXJjZWlkIl0sInVzZXJfbmFtZSI6IlRlc3RBZG1pbiIsInNjb3BlIjpbInJlYWQiLCJ3cml0ZSJdLCJleHAiOjE2Mjc3NTg2NTMsInVzZXIiOnsiaWQiOjIsInVzZXJOYW1lIjoiVGVzdEFkbWluIiwiZnVsbE5hbWUiOiJUZXN0QWRtaW4iLCJyb2xlIjoiVGVhY2hlciIsInRhc2tBc3NpZ25tZW50cyI6W3siaWQiOjIsImRlYWRMaW5lIjoxNTYzODMyODAwMDAwLCJ0YXNrSWQiOjIsInRhc2tDb2xsZWN0aW9uSWQiOjJ9XX0sImF1dGhvcml0aWVzIjpbIlRlYWNoZXIiXSwianRpIjoiNmE0ZGIzMmMtYTU4Ny00MDNkLWJjZGQtOTg0NzQ0YWY4OGJiIiwiY2xpZW50X2lkIjoiaGFuZGxldnJjbGllbnQifQ.MDAG10HRlNNaJv_53Bv2LC8_37-xOV2DflV6YCpVTLY
+
+{
+  "id": 3,
+  "userName": "TestUser2",
+  "fullName": "TestUser Updated",
+  "password": "TestPassword",
+  "role": "Learner",
+  "taskAssignmentIds": [1]
+}
+
+###
+
+POST http://localhost:8080/taskCollection
+Content-Type:application/json
+
+{
+  "id": 1,
+  "name": "TestScenario",
+  "description": "TestScenarioDesc",
+  "learningField": {
+    "id": 1,
+    "name": "LearningFieldName",
+    "description": "LearningFieldDesc"
+  },
+  "tasks": [
+    {
+      "id": 1,
+      "name": "TestNameUpdated",
+      "description": "TestDescription",
+      "learningField": {
+        "id": 1,
+        "name": "LearningFieldName",
+        "description": "LearningFieldDesc"
+      },
+      "taskClass": {
+        "id": 1,
+        "name": "Task Class Name",
+        "description": "Task Class Desc"
+      },
+      "material": "Plastic",
+      "partTaskPractices": [
+        {
+          "id": 2,
+          "name": "PartTask1Name",
+          "description": "PartTask1Description",
+          "learningField": {
+            "id": 1,
+            "name": "LearningFieldName",
+            "description": "LearningFieldDesc"
+          },
+          "taskClass": {
+            "id": 1,
+            "name": "Task Class Name",
+            "description": "Task Class Desc"
+          },
+          "material": "Metal",
+          "partTaskPractices": [],
+          "subTasks": [],
+          "partTaskPractice": true
+        }
+      ],
+      "subTasks": [
+        {
+          "id": 4444,
+          "name": "Läufer-Frage",
+          "description": "Eine Frage zu Läufern wird gestellt.",
+          "subTaskType": {
+            "id": 444,
+            "name": "Single-/Multiple-Choice Frage",
+            "description": "Ermöglicht das Einbinden einer Single- oder Multiple-Choice Frage.",
+            "propertyTypes": "{\"choiceInteractionId\":\"int\"}",
+            "unityId": null
+          },
+          "properties": "{\"choiceInteractionId\": 555}"
+        },
+        {
+          "id": 6666,
+          "name": "Motorhaube lackieren",
+          "description": "Eine Motorhaube soll lackiert werden.",
+          "subTaskType": {
+            "id": 666,
+            "name": "Werkstück lackieren",
+            "description": "Ermöglicht das Durchführen eines Lackiervorgangs.",
+            "propertyTypes": "{\"coatId\": \"int\", \"workpieceId\": \"int\", \"distanceRay\": \"bool\", \"distanceMarker\": \"bool\", \"ghostPistol\": \"bool\", \"supportInfoId\": \"int\"}",
+            "unityId": null
+          },
+          "properties": "{\"coatId\": \"9\", \"workpieceId\": \"8\", \"distanceRay\": true, \"distanceMarker\": false, \"ghostPistol\": false, \"supportInfoId\": \"3333\"}"
+        }
+      ],
+      "partTaskPractice": false
+    },
+    {
+      "id": 2,
+      "name": "PartTask1Name",
+      "description": "PartTask1Description",
+      "learningField": {
+        "id": 1,
+        "name": "LearningFieldName",
+        "description": "LearningFieldDesc"
+      },
+      "taskClass": {
+        "id": 1,
+        "name": "Task Class Name",
+        "description": "Task Class Desc"
+      },
+      "material": "Metal",
+      "partTaskPractices": [],
+      "subTasks": [],
+      "partTaskPractice": true
+    },
+    {
+      "id": 3,
+      "name": "TestName",
+      "description": "TestDescription2",
+      "learningField": {
+        "id": 1,
+        "name": "LearningFieldName",
+        "description": "LearningFieldDesc"
+      },
+      "taskClass": {
+        "id": 1,
+        "name": "Task Class Name",
+        "description": "Task Class Desc"
+      },
+      "material": "Plastic",
+      "partTaskPractices": [],
+      "subTasks": [],
+      "partTaskPractice": false
+    }
+  ]
+}
+
+###
+
+GET http://localhost:8080/coats
+
+###
+
+GET http://localhost:8080/media
+
+###
+
+GET http://localhost:8080/users/1/taskAssignments
