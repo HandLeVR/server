@@ -11,4 +11,10 @@ import java.util.Set;
 public interface CoatRepository extends JpaRepository<Coat, Long> {
 
     Set<Coat> findByUsedInTasksContains(Task task);
+
+    boolean existsByIdAndName(long id, String name);
+
+    boolean existsByName(String name);
+
+    boolean existsByNameAndIdNot(String name, long id);
 }

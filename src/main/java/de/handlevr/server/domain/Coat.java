@@ -3,7 +3,6 @@ package de.handlevr.server.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.util.List;
@@ -16,6 +15,7 @@ public class Coat {
     private Long id;
 
     @OneToOne(cascade = CascadeType.ALL)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Permission permission;
 
     private String name;
@@ -76,8 +76,7 @@ public class Coat {
     @ManyToMany(mappedBy = "usedCoats")
     private List<Task> usedInTasks;
 
-    public enum CoatType
-    {
-        Primer,Basecoat,Clearcoat,Topcoat;
+    public enum CoatType {
+        Primer, Basecoat, Clearcoat, Topcoat;
     }
 }

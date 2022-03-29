@@ -1,5 +1,8 @@
 package de.handlevr.server.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import de.handlevr.server.listener.TaskCollectionEntityListener;
+import de.handlevr.server.listener.TaskEntityListener;
 import lombok.Data;
 import org.hibernate.annotations.Type;
 
@@ -8,13 +11,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-/*
+/**
  * Represents a painting task.
  *
- * The annotation @JsonIgnore for users is needed to break the cycle when serializing the object
  */
 @Data
 @Entity
+@EntityListeners(TaskEntityListener.class)
 public class Task {
 
     @Id
@@ -22,6 +25,7 @@ public class Task {
     private Long id;
 
     @OneToOne(cascade = CascadeType.ALL)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Permission permission;
 
     private String name;
@@ -37,21 +41,22 @@ public class Task {
 
     private boolean partTaskPractice;
 
+    // indicates whether some needed values are set which means that the task cannot be solved yet
     private boolean valuesMissing;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable
     private Set<Coat> usedCoats;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable
     private Set<Recording> usedRecordings;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable
     private Set<Media> usedMedia;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable
     private Set<Workpiece> usedWorkpieces;
 

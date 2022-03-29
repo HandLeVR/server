@@ -1,26 +1,41 @@
 package de.handlevr.server.controller;
 
-import de.handlevr.server.domain.*;
+import de.handlevr.server.domain.TaskCollection;
+import de.handlevr.server.domain.TaskCollectionAssignment;
+import de.handlevr.server.domain.TaskCollectionElement;
 import de.handlevr.server.repository.TaskCollectionAssignmentRepository;
 import de.handlevr.server.repository.TaskCollectionElementRepository;
 import de.handlevr.server.repository.TaskCollectionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import de.handlevr.server.service.PermissionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
+/**
+ * Handles task collection requests.
+ */
 @RestController
 public class TaskCollectionController {
 
-    @Autowired
-    TaskCollectionRepository taskCollectionRepository;
-    @Autowired
-    TaskCollectionElementRepository taskCollectionElementRepository;
-    @Autowired
-    TaskCollectionAssignmentRepository taskCollectionAssignmentRepository;
+    final TaskCollectionRepository taskCollectionRepository;
+    final TaskCollectionElementRepository taskCollectionElementRepository;
+    final TaskCollectionAssignmentRepository taskCollectionAssignmentRepository;
+    final PermissionService permissionService;
+
+    public TaskCollectionController(TaskCollectionRepository taskCollectionRepository,
+                                    TaskCollectionElementRepository taskCollectionElementRepository,
+                                    TaskCollectionAssignmentRepository taskCollectionAssignmentRepository,
+                                    PermissionService permissionService) {
+        this.taskCollectionRepository = taskCollectionRepository;
+        this.taskCollectionElementRepository = taskCollectionElementRepository;
+        this.taskCollectionAssignmentRepository = taskCollectionAssignmentRepository;
+        this.permissionService = permissionService;
+    }
 
     @GetMapping("/taskCollections")
     public List<TaskCollection> getTaskCollections() {
@@ -45,7 +60,8 @@ public class TaskCollectionController {
     public void deleteTaskCollection(@PathVariable Long id) {
         TaskCollection taskCollection = getTaskCollection(id);
         if (taskCollectionAssignmentRepository.existsByTaskCollection(taskCollection))
-            throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("Task collection with the id %s already has task assignments", taskCollection.getId()));
+            throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("Task collection with the id %s " +
+                    "already has task assignments", taskCollection.getId()));
         taskCollectionRepository.deleteById(id);
     }
 
@@ -72,6 +88,7 @@ public class TaskCollectionController {
                     "already exists", taskCollection.getName()));
         List<TaskCollectionElement> elements = taskCollection.getTaskCollectionElements();
         taskCollection.setTaskCollectionElements(new ArrayList<>());
+        taskCollection.setPermission(permissionService.updatePermission(taskCollection.getPermission()));
         TaskCollection updatedTaskCollection = taskCollectionRepository.save(taskCollection);
         for (TaskCollectionElement element : elements) {
             element.setTaskCollection(updatedTaskCollection);

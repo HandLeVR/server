@@ -7,6 +7,9 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 
+/**
+ * This class represents a task contained by task collection and is used to determine the order of the tasks.
+ */
 @Data
 @Entity
 public class TaskCollectionElement {

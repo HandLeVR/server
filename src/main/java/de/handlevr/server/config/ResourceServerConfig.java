@@ -13,17 +13,27 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Res
 import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 
-
-/*
- * Allows to define permissions for endpoints.
+/**
+ * Allows defining permissions for endpoints.
  *
  * Source: https://medium.com/better-programming/secure-a-spring-boot-rest-api-with-json-web-token-reference-to-angular-integration-e57a25806c50
  */
 @Configuration
 @EnableResourceServer
 public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
-    @Autowired
+
     private ResourceServerTokenServices tokenServices;
+    private OAuth2WebSecurityExpressionHandler expressionHandler;
+
+    @Autowired
+    public void setTokenServices(ResourceServerTokenServices tokenServices) {
+        this.tokenServices = tokenServices;
+    }
+
+    @Autowired
+    public void setExpressionHandler(OAuth2WebSecurityExpressionHandler expressionHandler) {
+        this.expressionHandler = expressionHandler;
+    }
 
     @Value("${security.jwt.resource-ids}")
     private String resourceIds;
@@ -33,8 +43,9 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
         resources.resourceId(resourceIds).tokenServices(tokenServices).expressionHandler(expressionHandler);
     }
 
-    /*
+    /**
      * Needed because otherwise we get a SpelEvaluationException when registering the UserSecurity bean
+     *
      * Source: https://stackoverflow.com/questions/31473171/getting-no-bean-resolver-registered/31483157
      */
     @Bean
@@ -44,11 +55,8 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
         return expressionHandler;
     }
 
-    @Autowired
-    private OAuth2WebSecurityExpressionHandler expressionHandler;
-
     @Bean
-    public UserSecurity userSecurity(){
+    public UserSecurity userSecurity() {
         return new UserSecurity();
     }
 
@@ -59,7 +67,7 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/actuator/**", "/api-docs/**").permitAll()
-                .antMatchers("/springjwt/**" ).authenticated();
+                .antMatchers("/springjwt/**").authenticated();
     }
 }
 

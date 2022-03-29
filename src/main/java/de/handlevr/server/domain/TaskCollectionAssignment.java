@@ -1,6 +1,7 @@
 package de.handlevr.server.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import de.handlevr.server.listener.TaskCollectionAssignmentEntityListener;
 import lombok.Data;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -9,8 +10,13 @@ import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Represents an assignment of a task collection to a user. Is also created if a task collection is assigned through a
+ * user group task assignment.
+ */
 @Data
 @Entity
+@EntityListeners(TaskCollectionAssignmentEntityListener.class)
 public class TaskCollectionAssignment {
 
     @Id
@@ -24,6 +30,7 @@ public class TaskCollectionAssignment {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private TaskCollection taskCollection;
 
+    // the corresponding user group task assignment if this is not a directly assigned task collection
     @ManyToOne
     private UserGroupTaskAssignment userGroupTaskAssignment;
 

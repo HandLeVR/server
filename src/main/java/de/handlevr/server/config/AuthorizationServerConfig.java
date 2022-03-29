@@ -1,7 +1,6 @@
 package de.handlevr.server.config;
 
 import de.handlevr.server.authentification.CustomTokenEnhancer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +19,7 @@ import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenCo
 
 import java.util.Arrays;
 
-/*
+/**
  * Custom authorization configuration.
  *
  * Source: https://medium.com/better-programming/secure-a-spring-boot-rest-api-with-json-web-token-reference-to-angular-integration-e57a25806c50
@@ -31,33 +30,30 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
     @Value("${security.jwt.client-id}")
     private String clientId;
-
     @Value("${security.jwt.client-secret}")
     private String clientSecret;
-
     @Value("${security.jwt.scope-read}")
     private String scopeRead;
-
     @Value("${security.jwt.scope-write}")
     private String scopeWrite = "write";
-
     @Value("${security.jwt.resource-ids}")
     private String resourceIds;
 
-    @Autowired
-    private TokenStore tokenStore;
+    private final TokenStore tokenStore;
+    private final JwtAccessTokenConverter accessTokenConverter;
+    private final AuthenticationManager authenticationManager;
+    private final UserDetailsService userDetailsService;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private JwtAccessTokenConverter accessTokenConverter;
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private UserDetailsService userDetailsService;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public AuthorizationServerConfig(TokenStore tokenStore, JwtAccessTokenConverter accessTokenConverter,
+                                     AuthenticationManager authenticationManager,
+                                     UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+        this.tokenStore = tokenStore;
+        this.accessTokenConverter = accessTokenConverter;
+        this.authenticationManager = authenticationManager;
+        this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Bean
     public TokenEnhancer customTokenEnhancer() {
@@ -76,7 +72,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     }
 
     @Override
-    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+    public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
         TokenEnhancerChain enhancerChain = new TokenEnhancerChain();
         enhancerChain.setTokenEnhancers(Arrays.asList(customTokenEnhancer(), accessTokenConverter));
         endpoints.tokenStore(tokenStore)

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-/*
+/**
  * Tells the rest controller which error code and message should be returned if a InternalServerErrorException is thrown.
  */
 @ControllerAdvice
@@ -16,7 +16,7 @@ public class InternalServerErrorAdvice {
     @ResponseBody
     @ExceptionHandler(InternalServerErrorException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    String internalServerErroHandler(InternalServerErrorException ex) {
+    String internalServerErrorHandler(InternalServerErrorException ex) {
         return ex.getMessage();
     }
 }

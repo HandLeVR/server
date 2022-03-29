@@ -2,22 +2,28 @@ package de.handlevr.server.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import de.handlevr.server.listener.UserEntityListener;
 import lombok.Data;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
 import java.util.List;
 
-/*
+/**
  * Representation of a user.
  */
 @Data
 @Entity
 @Table(name = "user", schema = "public")
+@EntityListeners(UserEntityListener.class)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Permission permission;
 
     private String userName;
 
@@ -28,10 +34,18 @@ public class User {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
+    private String securityQuestion;
+
+    @JsonIgnore
+    private String securityAnswer;
+
     @Enumerated(EnumType.STRING)
     private Role role;
 
     private boolean passwordChanged;
+
+    @JsonIgnore
+    private boolean disabled;
 
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
@@ -62,7 +76,7 @@ public class User {
 
     public enum Role
     {
-        Teacher, RestrictedTeacher, Learner
+        Learner, RestrictedTeacher, Teacher
     }
 }
 

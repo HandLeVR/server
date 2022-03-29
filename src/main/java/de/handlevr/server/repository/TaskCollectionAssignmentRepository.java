@@ -17,4 +17,6 @@ public interface TaskCollectionAssignmentRepository extends JpaRepository<TaskCo
     Set<TaskCollectionAssignment> findByTaskCollection(TaskCollection taskCollection);
 
     boolean existsByTaskCollection(TaskCollection taskCollection);
+
+    void removeAllByUser(User user);
 }

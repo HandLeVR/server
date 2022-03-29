@@ -9,15 +9,19 @@ import org.springframework.stereotype.Repository;
 import java.util.Set;
 
 @Repository
-public interface RecordingRepository extends JpaRepository<Recording,Long> {
+public interface RecordingRepository extends JpaRepository<Recording, Long> {
 
     boolean existsByCoat(Coat coat);
 
     boolean existsByBaseCoat(Coat baseCoat);
 
-    boolean existsByNameAndIdNot(String name, Long id);
+    boolean existsByNameAndIdNot(String name, long id);
+
+    boolean existsByIdAndName(Long id, String name);
+
+    boolean existsByName(String name);
 
     Set<Recording> findByUsedInTasksContains(Task task);
 
-    Set<Recording> findByTaskResultNull();
+    Set<Recording> findByHasTaskResult(boolean hasTaskResult);
 }

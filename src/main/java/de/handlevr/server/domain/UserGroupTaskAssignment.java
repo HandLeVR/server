@@ -9,6 +9,9 @@ import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Represents assignments of tasks or task collections to user groups.
+ */
 @Data
 @Entity
 public class UserGroupTaskAssignment {

@@ -2,7 +2,7 @@ package de.handlevr.server.controller;
 
 import de.handlevr.server.domain.*;
 import de.handlevr.server.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import de.handlevr.server.service.PermissionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -12,19 +12,31 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Handles all user group request.
+ */
 @RestController
 public class UserGroupController {
 
-    @Autowired
-    UserGroupRepository userGroupRepository;
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    TaskAssignmentRepository taskAssignmentRepository;
-    @Autowired
-    TaskCollectionAssignmentRepository taskCollectionAssignmentRepository;
-    @Autowired
-    UserGroupTaskAssignmentRepository userGroupTaskAssignmentRepository;
+    final UserGroupRepository userGroupRepository;
+    final UserRepository userRepository;
+    final TaskAssignmentRepository taskAssignmentRepository;
+    final TaskCollectionAssignmentRepository taskCollectionAssignmentRepository;
+    final UserGroupTaskAssignmentRepository userGroupTaskAssignmentRepository;
+    final PermissionService permissionService;
+
+    public UserGroupController(UserGroupRepository userGroupRepository, UserRepository userRepository,
+                               TaskAssignmentRepository taskAssignmentRepository,
+                               TaskCollectionAssignmentRepository taskCollectionAssignmentRepository,
+                               UserGroupTaskAssignmentRepository userGroupTaskAssignmentRepository,
+                               PermissionService permissionService) {
+        this.userGroupRepository = userGroupRepository;
+        this.userRepository = userRepository;
+        this.taskAssignmentRepository = taskAssignmentRepository;
+        this.taskCollectionAssignmentRepository = taskCollectionAssignmentRepository;
+        this.userGroupTaskAssignmentRepository = userGroupTaskAssignmentRepository;
+        this.permissionService = permissionService;
+    }
 
     @GetMapping("/userGroups")
     @PreAuthorize("hasAuthority('Teacher') or hasAuthority('RestrictedTeacher')")
@@ -44,7 +56,7 @@ public class UserGroupController {
     @PreAuthorize("hasAuthority('Teacher') or hasAuthority('RestrictedTeacher')")
     public void deleteUserGroup(@PathVariable Long id) {
         UserGroup userGroup = getUseGroup(id);
-        for (UserGroupTaskAssignment assignment: userGroup.getUserGroupTaskAssignments()            ) {
+        for (UserGroupTaskAssignment assignment : userGroup.getUserGroupTaskAssignments()) {
             removeTaskAssignments(taskAssignmentRepository.findByUserGroupTaskAssignment(assignment), true);
             removeTaskCollectionAssignments(taskCollectionAssignmentRepository.findByUserGroupTaskAssignment(assignment), true);
         }
@@ -56,8 +68,10 @@ public class UserGroupController {
     public UserGroup updateUserGroup(@RequestBody UserGroup userGroup) {
         UserGroup oldUserGroup = getUseGroup(userGroup.getId());
         if (userGroupRepository.existsByNameAndIdNot(userGroup.getName(), userGroup.getId()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("User group with the name %s already exists", userGroup.getName()));
+            throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("User group with the name %s already" +
+                    " exists", userGroup.getName()));
         oldUserGroup.setName(userGroup.getName());
+        permissionService.updatePermission(oldUserGroup.getPermission());
         return userGroupRepository.save(oldUserGroup);
     }
 
@@ -65,8 +79,10 @@ public class UserGroupController {
     @PreAuthorize("hasAuthority('Teacher') or hasAuthority('RestrictedTeacher')")
     public UserGroup createUserGroup(@RequestBody UserGroup userGroup) {
         if (userGroupRepository.existsByNameAndIdNot(userGroup.getName(), userGroup.getId()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("User group with the name %s already exists", userGroup.getName()));
+            throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("User group with the name %s already" +
+                    " exists", userGroup.getName()));
         userGroup.setId(null);
+        userGroup.setPermission(permissionService.updatePermission(null));
         return userGroupRepository.save(userGroup);
     }
 
@@ -80,7 +96,7 @@ public class UserGroupController {
     @PostMapping("/userGroups/{id}/userGroupTaskAssignments")
     @PreAuthorize("hasAuthority('Teacher') or hasAuthority('RestrictedTeacher')")
     public List<UserGroupTaskAssignment> addUserGroupTaskAssignment(@PathVariable Long id,
-                                                              @RequestBody List<UserGroupTaskAssignment> assignments) {
+                                                                    @RequestBody List<UserGroupTaskAssignment> assignments) {
         UserGroup userGroup = getUseGroup(id);
         List<UserGroupTaskAssignment> result = new ArrayList<>();
         for (UserGroupTaskAssignment assignment : assignments) {
@@ -105,7 +121,8 @@ public class UserGroupController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User group task assignment with " +
                     "the id %s is not assigned to the given user group", assignmentId));
         removeTaskAssignments(taskAssignmentRepository.findByUserGroupTaskAssignment(assignment), true);
-        removeTaskCollectionAssignments(taskCollectionAssignmentRepository.findByUserGroupTaskAssignment(assignment), true);
+        removeTaskCollectionAssignments(taskCollectionAssignmentRepository.findByUserGroupTaskAssignment(assignment),
+                true);
         userGroupTaskAssignmentRepository.delete(assignment);
     }
 
@@ -146,6 +163,9 @@ public class UserGroupController {
         deleteUser(userGroupId, userId, true);
     }
 
+    /**
+     * Adds a user to the group
+     */
     private UserGroup addUser(Long userGroupId, User user, boolean addTasks) {
         UserGroup userGroup = getUseGroup(userGroupId);
         user = getUser(user.getId());
@@ -159,9 +179,13 @@ public class UserGroupController {
         for (UserGroupTaskAssignment assignment : userGroup.getUserGroupTaskAssignments()) {
             createAssignmentsForUser(user, assignment);
         }
+        permissionService.updatePermission(userGroup.getPermission());
         return userGroup;
     }
 
+    /**
+     * Creates individual task assignments for the user.
+     */
     private void createAssignmentsForUser(User user, UserGroupTaskAssignment assignment) {
         if (assignment.getTask() != null)
             taskAssignmentRepository.save(new TaskAssignment(user, assignment.getTask(), null, assignment,
@@ -177,6 +201,9 @@ public class UserGroupController {
         }
     }
 
+    /**
+     * Deletes the user and removes all assignments if needed.
+     */
     private void deleteUser(Long userGroupId, Long userId, boolean removeAssignments) {
         UserGroup userGroup = getUseGroup(userGroupId);
         User user = getUser(userId);
@@ -189,6 +216,7 @@ public class UserGroupController {
             removeTaskCollectionAssignments(taskCollectionAssignmentRepository.findByUserAndUserGroupTaskAssignment(user, assignment), removeAssignments);
         }
         userGroup.getUsers().remove(user);
+        permissionService.updatePermission(userGroup.getPermission());
         userGroupRepository.save(userGroup);
     }
 

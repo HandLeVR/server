@@ -8,7 +8,7 @@ public interface TaskResultRepository extends JpaRepository<TaskResult, Long> {
 
     TaskResult findById(long id);
 
-    TaskResult findFirstByTaskAssignmentId(long id);
+    boolean existsByTaskAssignmentId(long id);
 
-    TaskResult findFirstByTaskAssignment_TaskId(long id);
+    boolean existsByTaskAssignment_TaskId(long id);
 }

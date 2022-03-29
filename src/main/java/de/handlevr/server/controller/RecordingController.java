@@ -5,9 +5,11 @@ import de.handlevr.server.domain.Recording;
 import de.handlevr.server.domain.TaskResult;
 import de.handlevr.server.repository.CoatRepository;
 import de.handlevr.server.repository.RecordingRepository;
+import de.handlevr.server.repository.TaskRepository;
 import de.handlevr.server.repository.TaskResultRepository;
 import de.handlevr.server.service.FilesStorageService;
-import org.springframework.beans.factory.annotation.Autowired;
+import de.handlevr.server.service.PermissionService;
+import de.handlevr.server.service.RecordingService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -18,24 +20,36 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Handles all recording requests.
+ */
 @RestController
 public class RecordingController {
 
-    @Autowired
-    RecordingRepository recordingRepository;
-    @Autowired
-    CoatRepository coatRepository;
-    @Autowired
-    TaskResultRepository taskResultRepository;
-    @Autowired
-    FilesStorageService storageService;
+    final RecordingRepository recordingRepository;
+    final CoatRepository coatRepository;
+    final TaskResultRepository taskResultRepository;
+    final TaskRepository taskRepository;
+    final PermissionService permissionService;
+    final FilesStorageService storageService;
+    final RecordingService recordingService;
+
+    public RecordingController(RecordingRepository recordingRepository, CoatRepository coatRepository,
+                               TaskResultRepository taskResultRepository, FilesStorageService storageService,
+                               TaskRepository taskRepository, PermissionService permissionService,
+                               RecordingService recordingService) {
+        this.recordingRepository = recordingRepository;
+        this.coatRepository = coatRepository;
+        this.taskResultRepository = taskResultRepository;
+        this.storageService = storageService;
+        this.taskRepository = taskRepository;
+        this.permissionService = permissionService;
+        this.recordingService = recordingService;
+    }
 
     @GetMapping("/recordings")
     public List<Recording> getRecordings() {
@@ -44,13 +58,7 @@ public class RecordingController {
 
     @GetMapping("/recordings/noTaskResult")
     public Set<Recording> getRecordingsNoTaskResult() {
-        return recordingRepository.findByTaskResultNull();
-    }
-
-    @GetMapping("/recordings/{id}")
-    public Recording getRecording(@PathVariable Long id) {
-        return recordingRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                String.format("Recording with the id %s not found", id)));
+        return recordingRepository.findByHasTaskResult(false);
     }
 
     @GetMapping("/recordings/{id}/file")
@@ -58,6 +66,12 @@ public class RecordingController {
         Resource file = storageService.load(getRecording(id).getZipPath());
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"").body(file);
+    }
+
+    @GetMapping("/recordings/{id}")
+    public Recording getRecording(@PathVariable Long id) {
+        return recordingRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                String.format("Recording with the id %s not found", id)));
     }
 
     @GetMapping("/recordings/{id}/file/preview")
@@ -75,40 +89,29 @@ public class RecordingController {
         validateRecording(recording);
         recording.setId(null);
         TaskResult taskResult = recording.getTaskResult();
+        // we create the task result manually, and it is transient anyway
         recording.setTaskResult(null);
+        recording.setHasTaskResult(taskResult != null);
+        // don't set the uploader of the recording as the creator or editor of the recording if it is a task result
+        // we never use this information, and it prevents removing the user as the user object is used in a permission
+        recording.setPermission(permissionService.updatePermission(null, taskResult != null));
         recording = recordingRepository.save(recording);
         storageService.save(file, recording.getZipPath());
-        unpackPreviewFile(recording);
+        // the preview file has to be accessible individually
+        recordingService.unpackPreviewFile(recording);
         // add task result if it was sent with the recording
         if (taskResult != null) {
             taskResult.setId(null);
+            taskResult.setDate(new Date());
             taskResult.setRecording(recording);
             taskResultRepository.save(taskResult);
-            recording.setTaskResult(taskResult);
-            recording = recordingRepository.save(recording);
         }
         return recording;
     }
 
-    @PutMapping(path = "/recordings")
-    @PreAuthorize("hasAuthority('Teacher') or hasAuthority('RestrictedTeacher')")
-    public Recording updateRecording(@RequestBody Recording recording) throws IOException {
-        Recording oldRecording = getRecording(recording.getId());
-        validateRecording(recording);
-        if (!oldRecording.getData().equals(recording.getData()))
-            storageService.rename(oldRecording.getZipPath(), recording.getZipPath());
-        return recordingRepository.save(recording);
-    }
-
-    @DeleteMapping("/recordings/{id}")
-    @PreAuthorize("hasAuthority('Teacher') or hasAuthority('RestrictedTeacher')")
-    public void deleteRecording(@PathVariable Long id) {
-        Recording recording = getRecording(id);
-        if (!recording.getUsedInTasks().isEmpty())
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "TASK");
-        recordingRepository.deleteById(id);
-    }
-
+    /**
+     * Checks whether a recording if the same name exists and whether the used coats exist.
+     */
     private void validateRecording(Recording recording) {
         if (recordingRepository.existsByNameAndIdNot(recording.getName(), recording.getId()))
             throw new ResponseStatusException(HttpStatus.CONFLICT, "NAME");
@@ -118,12 +121,27 @@ public class RecordingController {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "COAT");
     }
 
-    private void unpackPreviewFile(Recording recording) throws IOException {
-        // Wrap the file system in a try-with-resources statement
-        // to auto-close it when finished and prevent a memory leak
-        try (FileSystem fileSystem = FileSystems.newFileSystem(recording.getZipPath())) {
-            Path fileToExtract = fileSystem.getPath("preview.png");
-            Files.copy(fileToExtract, recording.getPreviewPath());
-        }
+    /**
+     * Allows to rename the recording.
+     */
+    @PutMapping(path = "/recordings")
+    @PreAuthorize("hasAuthority('Teacher') or hasAuthority('RestrictedTeacher')")
+    public Recording updateRecording(@RequestBody Recording recording) throws IOException {
+        Recording oldRecording = getRecording(recording.getId());
+        validateRecording(recording);
+        if (!oldRecording.getData().equals(recording.getData()))
+            storageService.rename(oldRecording.getZipPath(), recording.getZipPath());
+        recording.setPermission(permissionService.updatePermission(oldRecording.getPermission()));
+        return recordingRepository.save(recording);
+    }
+
+    @DeleteMapping("/recordings/{id}")
+    @PreAuthorize("hasAuthority('Teacher') or hasAuthority('RestrictedTeacher')")
+    public void deleteRecording(@PathVariable Long id) {
+        Recording recording = getRecording(id);
+        // recordings cannot be removed if used in a task
+        if (!recording.getUsedInTasks().isEmpty())
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "TASK");
+        recordingRepository.deleteById(id);
     }
 }

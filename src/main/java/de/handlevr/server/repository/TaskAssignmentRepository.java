@@ -16,8 +16,10 @@ public interface TaskAssignmentRepository extends JpaRepository<TaskAssignment, 
 
     Set<TaskAssignment> findByUserAndUserGroupTaskAssignment(User user, UserGroupTaskAssignment userGroupTaskAssignment);
 
-    Set<TaskAssignment> findByUserAndTaskResultsNotNull(User user);
+    Set<TaskAssignment> findByUserAndTaskResultsNotNullAndTaskResults_RecordingNotNull(User user);
 
-    TaskAssignment findFirstByTask(Task task);
+    boolean existsByTask(Task task);
+
+    void removeAllByUser(User user);
 
 }
