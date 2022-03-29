@@ -104,6 +104,7 @@ public class TaskService {
         List<Recording> usedRecordings =
                 taskList.stream().flatMap(t -> t.getUsedRecordings().stream()).filter(distinctByKey(Recording::getId)).collect(Collectors.toList());
 
+        Map<Long, Long> idMap = new HashMap<>();
         for (Coat coat : usedCoats) {
             // only create a new coat if there isn't one with the same id and name
             if (coatRepository.existsByIdAndName(coat.getId(), coat.getName()))
@@ -123,12 +124,14 @@ public class TaskService {
             coat.setUsedInTasks(new ArrayList<>());
             coatRepository.save(coat);
 
-            // replace the ids in the subtask json
-            for (Task task : taskList)
-                task.setSubTasks(replaceId(Arrays.asList("coatId", "baseCoatId"), oldId, coat.getId(),
-                        task.getSubTasks()));
+            idMap.put(oldId, coat.getId());
         }
 
+        // replace the ids in the subtask json
+        for (Task task : taskList)
+            task.setSubTasks(replaceId(Arrays.asList("coatId", "baseCoatId"), idMap, task.getSubTasks()));
+
+        idMap = new HashMap<>();
         for (Media media : usedMedia) {
             // only create a new media element if there isn't one with the same id and name
             if (mediaRepository.existsByIdAndName(media.getId(), media.getName()))
@@ -152,16 +155,19 @@ public class TaskService {
             media.setUsedInTasks(new ArrayList<>());
             mediaRepository.save(media);
 
-            // replace the ids in the subtask json
-            for (Task task : taskList)
-                task.setSubTasks(replaceId(Arrays.asList("audioId", "finalAudioId", "imageId", "videoId",
-                        "reminderAudioId", "finalReminderAudioId"), oldId, media.getId(), task.getSubTasks()));
+            idMap.put(oldId, media.getId());
 
             // save the file
             File mediaFile = extractFolder.resolve("usedMedia").resolve(filename).toFile();
             FileUtils.copyFile(mediaFile, media.getPath().toFile());
         }
 
+        // replace the ids in the subtask json
+        for (Task task : taskList)
+            task.setSubTasks(replaceId(Arrays.asList("audioId", "finalAudioId", "imageId", "videoId",
+                    "reminderAudioId", "finalReminderAudioId"), idMap, task.getSubTasks()));
+
+        idMap = new HashMap<>();
         for (Recording recording : usedRecordings) {
             // only create a new recording if there isn't one with the same id and name
             if (recordingRepository.existsByIdAndName(recording.getId(), recording.getName()))
@@ -185,15 +191,17 @@ public class TaskService {
             recording.setUsedInTasks(usedInTasks);
             recordingRepository.save(recording);
 
-            // replace the ids in the subtask json
-            for (Task task : taskList)
-                task.setSubTasks(replaceId(List.of("recordingId"), oldId, recording.getId(), task.getSubTasks()));
+            idMap.put(oldId, recording.getId());
 
             // save the file
             File recordingFile = extractFolder.resolve("usedRecordings").resolve(filename).toFile();
             FileUtils.copyFile(recordingFile, recording.getZipPath().toFile());
             recordingService.unpackPreviewFile(recording);
         }
+
+        // replace the ids in the subtask json
+        for (Task task : taskList)
+            task.setSubTasks(replaceId(List.of("recordingId"), idMap, task.getSubTasks()));
 
 
         for (Task task : taskList) {
@@ -227,12 +235,12 @@ public class TaskService {
     /**
      * Tries to find the oldId in the subtask json replaces it with the newId.
      */
-    private String replaceId(List<String> fieldNames, long oldId, long newId, String subTaskJson) throws JsonProcessingException {
+    private String replaceId(List<String> fieldNames, Map<Long, Long> idMap, String subTaskJson) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode arrayNode = mapper.createArrayNode();
         for (JsonNode jsonNode : mapper.readTree(subTaskJson)) {
             ObjectNode objectNode = (ObjectNode) jsonNode;
-            replaceIdRecursively(mapper, fieldNames, oldId, newId, objectNode);
+            replaceIdRecursively(mapper, fieldNames, idMap, objectNode);
             arrayNode.add(objectNode);
         }
         return arrayNode.toString();
@@ -242,34 +250,41 @@ public class TaskService {
      * Traverses through a json object. If a field is found wich name is contained in the fieldNames list and the value
      * is equals the oldId, it is replaced be the newId.
      */
-    private void replaceIdRecursively(ObjectMapper mapper, List<String> fieldNames, long oldId, long newId,
+    private void replaceIdRecursively(ObjectMapper mapper, List<String> fieldNames, Map<Long, Long> idMap,
                                       ObjectNode parent) throws JsonProcessingException {
         Iterator<Map.Entry<String, JsonNode>> fields = parent.fields();
         while (fields.hasNext()) {
             Map.Entry<String, JsonNode> jsonField = fields.next();
             String fieldName = jsonField.getKey();
             JsonNode node = jsonField.getValue();
-            if (node.isValueNode()) {
-                if (node.isTextual() && JsonUtil.isJsonValid(node.asText())) {
-                    JsonNode subNode = mapper.readTree(node.asText());
-                    if (subNode.isObject()) {
-                        ObjectNode objectNode = (ObjectNode) subNode;
-                        replaceIdRecursively(mapper, fieldNames, oldId, newId, objectNode);
-                        parent.put(fieldName, objectNode.toString());
-                    }
-                } else if (fieldNames.contains(fieldName) && node.isNumber() && node.asLong() == oldId) {
-                    parent.put(fieldName, newId);
+            if (fieldNames.contains(fieldName)) {
+                if ((node.isTextual() || node.isNumber()) && idMap.containsKey(node.asLong())) {
+                    if (node.isTextual())
+                        parent.put(fieldName, String.valueOf(idMap.get(node.asLong())));
+                    else if (node.isNumber())
+                        parent.put(fieldName, idMap.get(node.asLong()));
                 }
+            } else if (node.isValueNode() && node.isTextual() && JsonUtil.isJsonValid(node.asText())) {
+                JsonNode subNode = mapper.readTree(node.asText());
+                if (subNode.isObject()) {
+                    ObjectNode objectNode = (ObjectNode) subNode;
+                    replaceIdRecursively(mapper, fieldNames, idMap, objectNode);
+                    parent.put(fieldName, objectNode.toString());
+                }
+
             } else if (node.isArray()) {
                 ArrayNode arrayNode = parent.putArray(fieldName);
                 for (JsonNode arrayItem : node) {
-                    ObjectNode objectNode = (ObjectNode) arrayItem;
-                    replaceIdRecursively(mapper, fieldNames, oldId, newId, objectNode);
-                    arrayNode.add(objectNode);
+                    if (arrayItem.isObject()) {
+                        ObjectNode objectNode = (ObjectNode) arrayItem;
+                        replaceIdRecursively(mapper, fieldNames, idMap, objectNode);
+                        arrayNode.add(objectNode);
+                    } else
+                        arrayNode.add(arrayItem);
                 }
             } else if (node.isObject()) {
                 ObjectNode objectNode = (ObjectNode) node;
-                replaceIdRecursively(mapper, fieldNames, oldId, newId, objectNode);
+                replaceIdRecursively(mapper, fieldNames, idMap, objectNode);
                 parent.replace(fieldName, objectNode);
             }
         }

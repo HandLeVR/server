@@ -42,17 +42,17 @@ public class TaskCollectionController {
         return taskCollectionRepository.findAll();
     }
 
+    @GetMapping("/taskCollections/{id}/taskCollectionAssignments")
+    public Set<TaskCollectionAssignment> getTaskCollectionAssignments(@PathVariable Long id) {
+        TaskCollection taskCollection = getTaskCollection(id);
+        return taskCollectionAssignmentRepository.findByTaskCollection(taskCollection);
+    }
+
     @GetMapping("/taskCollections/{id}")
     public TaskCollection getTaskCollection(@PathVariable Long id) {
         return taskCollectionRepository.findById(id).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Task collection with the id %s not " +
                         "found", id)));
-    }
-
-    @GetMapping("/taskCollections/{id}/taskCollectionAssignments")
-    public Set<TaskCollectionAssignment> getTaskCollectionAssignments(@PathVariable Long id) {
-        TaskCollection taskCollection = getTaskCollection(id);
-        return taskCollectionAssignmentRepository.findByTaskCollection(taskCollection);
     }
 
     @DeleteMapping("/taskCollections/{id}")
@@ -71,13 +71,6 @@ public class TaskCollectionController {
         return handleTaskCollection(taskCollection);
     }
 
-    @PostMapping("/taskCollections")
-    @PreAuthorize("hasAuthority('Teacher') or hasAuthority('RestrictedTeacher')")
-    public TaskCollection createTaskCollection(@RequestBody TaskCollection taskCollection) {
-        taskCollection.setId(null);
-        return handleTaskCollection(taskCollection);
-    }
-
     /**
      * Manually handles the task collection elements because cascading did not work.
      */
@@ -86,6 +79,8 @@ public class TaskCollectionController {
                 taskCollection.getId() : -1))
             throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("Task collection with the name %s " +
                     "already exists", taskCollection.getName()));
+        if (taskCollection.getId() != null)
+            taskCollectionElementRepository.deleteAll(getTaskCollection(taskCollection.getId()).getTaskCollectionElements());
         List<TaskCollectionElement> elements = taskCollection.getTaskCollectionElements();
         taskCollection.setTaskCollectionElements(new ArrayList<>());
         taskCollection.setPermission(permissionService.updatePermission(taskCollection.getPermission()));
@@ -96,5 +91,12 @@ public class TaskCollectionController {
             updatedTaskCollection.getTaskCollectionElements().add(element);
         }
         return updatedTaskCollection;
+    }
+
+    @PostMapping("/taskCollections")
+    @PreAuthorize("hasAuthority('Teacher') or hasAuthority('RestrictedTeacher')")
+    public TaskCollection createTaskCollection(@RequestBody TaskCollection taskCollection) {
+        taskCollection.setId(null);
+        return handleTaskCollection(taskCollection);
     }
 }
